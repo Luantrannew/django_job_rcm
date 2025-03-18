@@ -1,0 +1,74 @@
+{% load static %}
+<head>
+    <!-- cắt và kéo ảnh avatar -->
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Nối link css -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+
+<body style="display: flex; justify-content: center; align-items: center; height: 120vh; margin: 0; background-color: #f0f0f5;">
+    <div class="login-card">
+        <h1 style="font-size: 32px;">Đăng nhập</h1>
+        <form id="loginForm">
+            {% csrf_token %}
+            <label for="username">Mã sinh viên:</label>
+            <input type="text" id="username" name="username" placeholder="Nhập mã sinh viên" required>
+            
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+            
+            <button type="submit">Đăng nhập</button>
+        </form>
+        <a id="errorMessage" class="error-message" style="display: none;"></a>
+    </div>
+</body>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Ngăn tải lại trang
+
+        const formData = new FormData(this); // Lấy dữ liệu từ form
+        const csrfToken = formData.get('csrfmiddlewaretoken'); // Lấy CSRF token
+
+        try {
+            const response = await fetch("{% url 'sign_in' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Đăng nhập thành công, chuyển hướng
+                window.location.href = "{% url 'index' %}";
+            } else {
+                // Hiển thị thông báo lỗi
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = data.message;
+            }
+        } catch (error) {
+            console.error('Lỗi:', error);
+        }
+    });
+</script>

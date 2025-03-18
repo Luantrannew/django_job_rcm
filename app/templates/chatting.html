@@ -1,0 +1,126 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1 class="text-center text-primary">Kênh hỗ trợ sinh viên</h1>
+        <div class="row justify-content-center mt-4">
+            <!-- Danh sách liên hệ -->
+            <div class="col-md-4 col-xl-3">
+                <div class="card">
+                    <div class="card-header">
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="contact-list">
+                            <li class="list-group-item active" data-room-id="{{ room_id }}">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" 
+                                         class="rounded-circle me-2" width="40" height="40">
+                                    <div>
+                                        <span>{{ chat_partner.username }}</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khung chat -->
+            <div class="col-md-8 col-xl-6">
+                <div class="card">
+                    <div class="card-header" id="chat-header">
+                        <div class="d-flex align-items-center">
+                            <img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" 
+                                 class="rounded-circle me-2" width="40" height="40">
+                            <span id="chat-with-user">Chat with {{ chat_partner.username }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body overflow-auto" style="height: 300px;" id="chat-log">
+                        {% for message in messages %}
+                            <div class="flex mb-2 {% if message.sender.id == user.id %}justify-end{% endif %}">
+                                <div class="p-3 rounded-lg max-w-xs lg:max-w-md shadow-sm {% if message.sender.id == user.id %}bg-blue-500 text-white{% else %}bg-gray-200 text-gray-800{% endif %}">
+                                    <p class="break-words">{{ message.message }}</p>
+                                    <span class="text-xs {% if message.sender.id == user.id %}text-blue-100{% else %}text-gray-500{% endif %} block mt-1">
+                                        {{ message.created_at|time:"H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <input id="chat-message-input" type="text" class="form-control" placeholder="Nhập tin nhắn...">
+                            <button id="chat-message-submit" class="btn btn-primary">Gửi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function scrollToBottom() {
+            const chatLog = document.getElementById('chat-log');
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        document.addEventListener("DOMContentLoaded", scrollToBottom);
+
+        const roomId = "{{ room_id }}";
+        const senderId = "{{ user.id }}";
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/private_chat/' + roomId + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const chatLog = document.getElementById('chat-log');
+
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("flex", "mb-2");
+
+            const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            if (data.sender_id == senderId) {
+                messageElement.classList.add("justify-end");
+                messageElement.innerHTML = `
+                    <div class="bg-blue-500 p-3 rounded-lg max-w-xs lg:max-w-md shadow-sm">
+                        <p class="text-white break-words">${data.message}</p>
+                        <span class="text-xs text-blue-100 block mt-1">${currentTime}</span>
+                    </div>`;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="bg-gray-200 p-3 rounded-lg max-w-xs lg:max-w-md shadow-sm">
+                        <p class="text-gray-800 break-words">${data.message}</p>
+                        <span class="text-xs text-gray-500 block mt-1">${currentTime}</span>
+                    </div>`;
+            }
+            chatLog.appendChild(messageElement);
+            scrollToBottom();  
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById('chat-message-input');
+            const message = messageInput.value;
+
+            if (message.trim() !== "") {
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'sender_id': senderId
+                }));
+                messageInput.value = '';
+                messageInput.focus();
+            }
+        }
+
+        document.getElementById('chat-message-submit').onclick = sendMessage;
+
+        document.getElementById('chat-message-input').addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();  
+                sendMessage();
+            }
+        });
+    </script>
+
+{% endblock %}

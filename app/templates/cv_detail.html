@@ -1,0 +1,178 @@
+{% extends "base_generic.html" %}
+{% load custom_filters %}
+{% load static %}
+{% block title %}
+    <title>Curriculum Vitae - {{ cv.name }}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo_ecom2.png' %}">
+{% endblock %}
+
+{% block content %}
+    <a href="#" id="recommended-jobs-btn" class="btn btn-success" style="float: right;">Gợi ý công việc theo CV của bạn</a> 
+    <a href="{% url 'generate_cv_pdf' cv.pk %}" class="btn btn-secondary" style="float: right; margin-right: 10px;">Tải CV</a>
+    <br><br><br>
+    <div class="cv-detail-section">
+
+        <!-- Profile Section -->
+        <div class="section">
+            <section class="text-center mb-4">
+                <div class="profile-section">
+                    {% if cv.avatar %}
+                        <img src="{{ cv.avatar.url }}" alt="Avatar" class="profile-picture">
+                    {% else %}
+                        <img src="{% static 'images/logo_ecom2.png' %}" alt="Default Avatar" class="profile-picture">
+                    {% endif %}
+                    <div class="profile-details">
+                        <h2 class="cv-name">{{ cv.student.name }}</h2>
+                        <div class="contact-info mb-3">
+                            <p><a class="text-decoration-none">+84 - {{ cv.student.phone }}</a></p>
+                            <p><a class="text-decoration-none">{{ cv.student.email }}</a></p>
+                        </div>
+                        <div class="social-links d-flex justify-content-center flex-wrap">
+                            {% for link in social_links %}
+                                <a href="{{ link.link }}" target="_blank" class="social-link">
+                                    <i class="{{ link.icon_class }}"></i> 
+                                    {{ link.displayname_set.first.display_name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- About Me Section -->
+        {% if cv.about_me %}
+        <section class="mb-4">
+            <div class="section">
+                <h4 class="section-header">About Me</h4>
+                <p>{{ cv.about_me }}</p>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Experience Section -->
+        {% if experiences %}
+        <section class="mb-4">
+            <div class="section">
+                <div class="section-header">Professional Experience</div>
+                {% for experience in experiences %}
+                <div class="job-entry">
+                    <div class="job-title">{{ experience.experience.role }},</div>
+                    <a href="#" class="company-link">({{ experience.experience.company_name }})</a>
+                    <span class="date">
+                        {{ experience.experience.start_date|date:"d/m/Y" }} - 
+                        {% if experience.experience.end_date %}
+                            {{ experience.experience.end_date|date:"d/m/Y" }}
+                        {% else %}
+                            Present
+                        {% endif %}
+                    </span>
+                    <ul class="responsibilities">
+                        {% for context_item in experience.experience.context.splitlines %}
+                        <div>{{ context_item|trim_leading_dot }}</div>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Certifications Section -->
+        {% if certifications %}
+        <section class="mb-4">
+            <div class="section">
+                <div class="section-header">Certifications</div>
+                <ul class="list-group list-group-flush">
+                    {% for cert in certifications %}
+                        <li class="list-group-item">{{ cert.certificate }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Skills Section -->
+        {% if skills %}
+        <section class="mb-4">
+            <div class="section">
+                <div class="section-header">Skills</div>
+                <div class="card mt-4">
+                    <div class="card-body ma">
+                        {% for skill in skills %}
+                        <span class="badge bg-success text-white p-2">{{ skill.skill.skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Languages Section -->
+        {% if languages %}
+        <section class="mb-4">
+            <div class="section">
+                <div class="section-header">Languages</div>
+                <ul>
+                    {% for lang in languages %}
+                        <li class="list-group-item">
+                            <strong>{{ lang.language.language }}</strong>
+                            <p class="m-0 text-muted">{{ lang.language.text }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Projects Section -->
+        {% if projects %}
+        <section class="mb-4">
+            <div class="section">
+                <div class="section-header">Projects</div>
+                {% for project in projects %}
+                    <div class="mb-3">
+                        <h5 class="mb-0 fw-bold">{{ project.project_name }}</h5>
+                        <ul class="responsibilities">
+                            {% for content_item in project.project_content.splitlines %}
+                            <div>
+                                {{ content_item|trim_leading_dot }}
+                            </div>
+                            {% endfor %}
+                            {% if project.project_link_set.exists %}
+                            (<a href="{{ project.project_link_set.first.link }}" target="_blank" class="text-decoration-none text-primary">link</a>)    
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    
+    </div>
+    <div id="recommended-jobs-container"></div>
+
+    <a href="#" id="recommended-jobs-info" hidden></a>
+
+    <script>
+        document.getElementById("recommended-jobs-btn").addEventListener("click", function (event) {
+            event.preventDefault();
+            fetch("{% url 'recommended_jobs_by_cv' cv.pk %}", {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            })
+            .then((response) => response.text())
+            .then((html) => {
+                document.getElementById("recommended-jobs-container").innerHTML = html;
+                document.getElementById("recommended-jobs-info").classList.remove("d-none");
+
+                // Cuộn xuống phần danh sách công việc
+                document.getElementById("recommended-jobs-container").scrollIntoView({ behavior: "smooth", block: "start" });
+            })
+            .catch((error) => console.error("Error fetching jobs:", error));
+        });
+
+    </script>
+{% endblock %}

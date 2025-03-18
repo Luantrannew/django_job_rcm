@@ -1,0 +1,61 @@
+{% extends "base_generic.html" %}
+{% block content %}
+<div class="container mt-5">
+    {% if user.is_authenticated %}
+        <h2 class="text-center mb-4">🎉 Chào mừng, {{ user.student_profile.name}}!</h2>
+        <p class="text-center">Bạn đã đăng nhập thành công. Hãy khám phá các tính năng dành riêng cho bạn.</p>
+        <div class="text-center">
+            <p>💡 Cần trợ giúp? Liên hệ admin qua kênh chat để được hỗ trợ chi tiết hơn.</p>
+            <a href="{% url 'chat_with_admin' %}" class="btn btn-warning">📞 Liên hệ Admin</a>
+        </div>
+    {% else %}
+        <h2 class="text-center mb-4">Trang web giới thiệu việc làm dành cho sinh viên khoa E-commerce</h2>
+        <br>
+        
+        <div class="row">
+            <!-- Hướng dẫn bên trái -->
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h3 class="card-title">👨‍🎓 Dành cho Sinh Viên</h3>
+                        <ul>
+                            <li><strong>Đăng nhập:</strong> Sử dụng mã sinh viên và mật khẩu để đăng nhập.</li>
+                            <li><strong>Tạo CV:</strong> Vào mục "Tạo CV" để tạo hồ sơ cá nhân của bạn.</li>
+                            <li><strong>Việc làm phù hợp:</strong> Hệ thống sẽ gợi ý việc làm theo ngành học và CV của bạn.</li>
+                            <li><strong>Trợ lý ảo Gemini:</strong> Hỗ trợ viết và tạo CV với AI từ Google.</li>
+                            <li><strong>Kênh chat:</strong> Trao đổi trực tiếp với admin hoặc chatbot hỗ trợ.</li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <a href="{% url 'sign_in' %}" class="btn btn-primary mt-3">🔐 Đăng nhập ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn bên phải -->
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h3 class="card-title">🏢 Dành cho Quản Trị Viên</h3>
+                        <ul>
+                            <li><strong>Quản lý việc làm:</strong> Thêm, chỉnh sửa và theo dõi các vị trí tuyển dụng.</li>
+                            <li><strong>Quản lý sinh viên:</strong> Dễ dàng tìm kiếm và liên hệ với ứng viên tiềm năng.</li>
+                            <li><strong>Hỗ trợ:</strong> Chat với sinh viên qua hệ thống hoặc chatbot thông minh.</li>
+                            <br>
+                        </ul>
+                        <div style="text-align: center;">
+                            <a href="{% url 'sign_in' %}" class="btn btn-success mt-3">🚀 Bắt đầu ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần dưới: Thông tin thêm -->
+        <div class="mt-5 text-center">
+            <h4>💡 Cần trợ giúp? Liên hệ admin qua kênh chat để được hỗ trợ chi tiết hơn.</h4>
+            <a href="{% url 'chat_with_admin' %}" class="btn btn-warning">📞 Liên hệ Admin</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h1>Đăng ký thông tin sinh viên</h1>
+
+<form id="studentForm" method="post" action="{% url 'studentForm' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="student_name">Họ và tên :</label>
+        <input type="text" class="form-control" id="student_name" name="student_name" >
+    </div>
+    <div class="form-group">
+        <label for="student_code">Mã sinh viên :</label>
+        <input type="text" class="form-control" id="student_code" name="student_code" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Địa chỉ email cá nhân :</label>
+        <input type="text" class="form-control" id="email" name="email" >
+    </div>
+    <div class="form-group">
+        <label for="phone">Nhập số điện thoại  :</label>
+        <input type="number" class="form-control" id="phone" name="phone" required>
+    </div>
+    <div class="form-group">
+        <label for="study_year">Niên khóa  :</label>
+        <input type="text" class="form-control" id="study_year" name="study_year" >
+    </div>
+    <!-- <div class="form-group">
+        <label for="password">Mật khẩu tài khoản  :</label>
+        <input type="text" class="form-control" id="password" name="password" >
+    </div> -->
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+<br>
+    <div id="responseMessage" style="display: none;"></div>
+
+
+<script>
+document.getElementById('studentForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var form = this;
+    var formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById("responseMessage").style.display = "block";
+    document.getElementById("responseMessage").innerHTML = `
+        <div class="alert alert-success" role="alert">
+            ${data.message}
+            `;
+        document.getElementById("studentForm").reset();
+    })
+    
+    });
+</script>
+
+{% endblock %}

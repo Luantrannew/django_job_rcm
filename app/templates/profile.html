@@ -1,0 +1,262 @@
+{% extends "base_generic.html" %}
+
+{% block content%}
+<style>
+    .container {
+        padding: 20px;
+    }
+    .card {
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 15px rgba(52,40,104,0.1);
+        background-color: #fff;
+        border: 1px solid #e5e9f2;
+        border-radius: 0.25rem;
+    }
+    .card-header {
+        padding: 1rem 1.5rem;
+        background-color: #f0f2f5;
+        border-bottom: 1px solid #e5e9f2;
+    }
+    .card-header h5 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #333;
+    }
+    .list-group-item {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        color: #555;
+    }
+    .list-group-item.active {
+        background-color: #1b1d4d;
+        border-color: #1b1d4d;
+        color: #fff;
+    }
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .profile-form {
+        padding: 0.75rem;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    h1 {
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    .btn-primary {
+        background-color: #1b1d4d;
+        border: #1b1d4d;
+    }
+    .btn-primary:hover {
+    background-color: #454680; /* Màu sáng hơn khi hover */
+    border: #454680;
+}
+</style>
+
+
+<div class="container p-0">
+    <h1 class="h3 mb-3">Chỉnh sửa thông tin & bảo mật</h1>
+    <div class="row">
+        <div class="col-md-5 col-xl-4">
+
+            <div class="card">
+                <!-- <div class="card-header">
+                    <h5 class="card-title mb-0">...</h5>
+                </div> -->
+
+                <div class="list-group list-group-flush" role="tablist">
+                    <a class="list-group-item list-group-item-action active" data-toggle="list" href="#account" role="tab">
+                        Chỉnh sửa thông tin cá nhân
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-toggle="list" href="#password" role="tab" aria-controls="password">
+                        Thay đổi mật khẩu
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-toggle="list" href="#delete-account" role="tab">
+                      Xóa tài khoản
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 col-xl-8">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="account" role="tabpanel">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin cá nhân</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="profile-form">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="name">Họ và Tên:</label>
+                                    <input type="text" class="form-control profile-form" id="name" name="name" value="{{ student.name }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" class="form-control profile-form" id="email" name="email" value="{{ student.email }}">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="phone">Số điện thoại:</label>
+                                    <input type="text" class="form-control profile-form" id="phone" name="phone" value="{{ student.phone }}" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="study_year">Năm học:</label>
+                                    <input type="text" class="form-control profile-form" id="study_year" name="study_year" value="{{ student.study_year }}">
+                                </div>
+                                <button class="btn btn-primary" type="submit" style="float: right;">Lưu thay đổi</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                <div class="tab-pane fade" id="password" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thay đổi mật khẩu</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="password-form">
+                                <div class="form-group">
+                                    <label for="inputPasswordCurrent">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control profile-form" id="current_password" name="current_password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPasswordNew">Mật khẩu mới</label>
+                                    <input type="password" class="form-control profile-form" id="new_password" name="new_password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPasswordNew2">Nhập lại mật khẩu mới</label>
+                                    <input type="password" class="form-control profile-form" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                <button class="btn btn-primary" type="submit" style="float: right;">Lưu thay đổi</button>   
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="delete-account" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Xóa tài khoản</h5>
+                            <p>Tính năng này hiện không khả dụng.</p>
+                </div>
+            </div>
+            <!-- Phần thông báo -->
+            <div id="alert-box" style="display:none; margin-bottom: 15px;"></div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Hàm lấy CSRF token từ cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const csrftoken = getCookie('csrftoken');
+
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            study_year: document.getElementById('study_year').value
+        };
+
+        try {
+            const response = await fetch("{% url 'update_profile' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            const alertBox = document.getElementById('alert-box');
+            if (data.success) {
+                alert('Cập nhật thông tin thành công!');
+            } else {
+                alert('Có lỗi xảy ra: ' + data.message);
+            }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật:", error);
+            alert("Đã xảy ra lỗi! Vui lòng thử lại.");
+        }
+    });
+
+    // Xử lý đổi mật khẩu qua fetch
+    document.getElementById('password-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const csrftoken = getCookie('csrftoken');
+        const formData = {
+            current_password: document.getElementById('current_password').value,
+            new_password: document.getElementById('new_password').value,
+            confirm_password: document.getElementById('confirm_password').value
+        };
+        try {
+            const response = await fetch("{% url 'change_password' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            const alertBox = document.getElementById('alert-box');
+            alertBox.style.display = 'block';
+            if (data.success) {
+                alert('Cập nhật thông tin thành công!');
+            } else {
+                alert('Có lỗi xảy ra: ' + data.message);
+            }
+        } catch (error) {
+            console.error("Lỗi khi đổi mật khẩu:", error);
+            alert("Đã xảy ra lỗi khi đổi mật khẩu!");
+        }
+    });
+
+
+    // Xử lý sự kiện click vào các tab panel
+    $(document).ready(function(){
+      // Lắng nghe sự kiện click trên các item trong list-group
+      $('.list-group a[data-toggle="list"]').on('click', function(e) {
+        e.preventDefault();
+        // Xóa class active khỏi tất cả các item
+        $('.list-group a[data-toggle="list"]').removeClass('active');
+        // Thêm class active cho item được click
+        $(this).addClass('active');
+        // Ẩn tất cả các tab-pane
+        $('.tab-pane').removeClass('show active');
+        // Lấy id của tab-pane cần hiển thị từ thuộc tính href
+        var target = $(this).attr('href');
+        // Hiển thị tab-pane tương ứng
+        $(target).addClass('show active');
+      });
+    });
+
+</script>
+{% endblock %}

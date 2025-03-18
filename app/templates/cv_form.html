@@ -1,0 +1,614 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<br><br>
+<body>
+  <div class="form">
+    <form method="POST" enctype="multipart/form-data" id="cvForm">
+      {% csrf_token %}
+  
+      <div class="row" hidden>
+        <div class="col-md-6">
+          <div class="form-group">
+            <input type="text" class="form-control" name="student_code" value="{{ student.student_code }}" readonly>
+          </div>
+        </div>
+      </div> 
+  
+      
+      <h1 class="text-center">Thông tin CV</h1>
+
+      
+  
+      <div class="cv-form-section">
+        <br>
+        <div class="col-md-7">
+          <div class="form-group">
+            <div class="form-group-inline">
+              <label for="cv_name">Tên CV</label>
+              <input type="text" class="form-control" name="cv_name" value="{{ cv.name }}" placeholder="Hãy nhập tên CV của bạn" required>
+            </div>
+          </div>
+        </div>
+        <br>
+
+        <div class="col-md-7">
+          <div class="form-group">
+            <label for="avatar">Ảnh đại diện</label>
+            <input type="file" name="avatar" class="form-control" id="avatar" accept="image/*">
+            {% if cv.avatar %}
+              <img src="{{ cv.avatar.url }}" alt="Avatar" class="img-thumbnail mt-3" style="max-width: 150px;">
+            {% endif %}
+          </div>
+          <div class="crop-container mt-3" style="display: none;">
+            <img id="avatarPreview" src="" alt="Preview" style="max-width: 100%;">
+            <button type="button" class="btn btn-primary mt-2" id="cropButton">Crop & Save</button>
+          </div>
+        </div>
+
+        
+        <br>
+
+        <hr class="my-4"> 
+        <h4>Thông tin cá nhân</h4>
+        <br>
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-7">
+              <div class="form-group-inline">
+                <label for="student_name">Họ và Tên:</label>
+                <input type="text" class="form-control" name="student_name" value="{{ student.name }}" readonly>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="form-group-inline">
+                <label for="phone">Số điện thoại:</label>
+                <input type="text" class="form-control" name="phone" value="{{ student.phone }}" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-3">
+          <div class="col-md-5">
+            <div class="form-group-inline">
+              <label for="email">Email:</label>
+              <input type="email" class="form-control" name="email" value="{{ student.email }}" readonly>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div id="socialLinkContainer">
+              {% for link in social_links %}
+              <div class="social-link-group">
+                <div class="row align-items-center mb-2">
+                  <div class="col-md-6">
+                    <input type="url" class="form-control" name="social_link_{{ forloop.counter0 }}" value="{{ link.link }}" placeholder="Nhập liên kết (facebook, website, ..)">
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" class="form-control" name="social_link_{{ forloop.counter0 }}_display_name" value="{{ link.displayname_set.first.display_name }}" placeholder="Tên hiển thị (nếu có)">
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="row">
+              <div class="col-md-5">
+                <button type="button" class="btn btn-secondary" onclick="addSocialLink()" data-bs-toggle="tooltip" title="Thêm liên kết">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-3">
+          <div class="col-md-12">
+            <div class="form-group-inline">
+              <label for="about_me">Mô tả bản thân</label>
+              <textarea class="form-control" name="about_me" id="about_me" rows="3" placeholder="Nhập mô tả bản thân">{{ cv.about_me }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+        <h4>Dự án</h4>
+        <div class="form-group">
+          <div id="projectContainer">
+            {% for project in projects %}
+            <div class="project-group">
+              <div class="row">
+                <div class="col-md-7">
+                  <div class="form-group-inline">
+                    <label for="project_{{ forloop.counter0 }}_name">Tên dự án:</label>
+                    <input type="text" class="form-control" name="project_{{ forloop.counter0 }}_name" value="{{ project.project_name }}">
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <div class="form-group-inline">
+                    <label for="project_{{ forloop.counter0 }}_link">Liên kết dự án:</label>
+                    <input type="url" class="form-control" name="project_{{ forloop.counter0 }}_link" value="{{ project.project_link.first.link }}">
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="form-group-inline">
+                  <label for="project_{{ forloop.counter0 }}_description">Mô tả dự án:</label>
+                  <textarea class="form-control" name="project_{{ forloop.counter0 }}_description" placeholder="Mô tả nội dung dự án">{{ project.project_content }}</textarea>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="addProject()" data-bs-toggle="tooltip du an" title="thêm dự án">+</button>
+        </div>
+
+        <hr class="my-4">
+        <h4>Kinh nghiệm</h4>
+        <div class="form-group">
+          <div id="experienceContainer">
+            {% for experience in experiences %}
+            <div class="experience-group">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <input type="text" class="form-control" name="experience_{{ forloop.counter0 }}_company_name" value="{{ experience.experience.company_name }}" placeholder="Tên Công ty">
+                </div>
+                <div class="col-md-3">
+                  <input type="text" class="form-control" name="experience_{{ forloop.counter0 }}_role" value="{{ experience.experience.role }}" placeholder="Vai trò">
+                </div>
+                <div class="col-md-3">
+                  <input type="date" class="form-control" name="experience_{{ forloop.counter0 }}_start_date" value="{{ experience.experience.start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                  <input type="date" class="form-control" name="experience_{{ forloop.counter0 }}_end_date" value="{{ experience.experience.end_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              <textarea class="form-control mb-2" name="experience_{{ forloop.counter0 }}_context" placeholder="Mô tả kinh nghiệm">{{ experience.experience.context }}</textarea>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="addExperience()" data-bs-toggle="tooltip kinh nghiem" title="thêm kinh nghiệm">+</button>
+        </div>
+        
+        <hr class="my-4">
+        <h4>Ngôn ngữ</h4>
+        <div class="form-group">
+          <div id="languageContainer">
+            {% for language in languages %}
+            <div class="language-group">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <input type="text" class="form-control mb-2" name="language_{{ forloop.counter0 }}_name" value="{{ language.language.language }}" placeholder="Nhập tên ngôn ngữ">
+                </div>
+                <div class="col-md-6">
+                  <textarea class="form-control mb-2" name="language_{{ forloop.counter0 }}_description" placeholder="Mô tả trình độ ngôn ngữ của bạn">{{ language.language.text }}</textarea>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="addLanguage()" data-bs-toggle="tooltip ngon ngu" title="thêm ngôn ngữ">+</button>
+        </div>
+
+        <hr class="my-4">
+        <h4>Chứng chỉ</h4>
+        <div class="form-group">
+          <div id="certificationContainer">
+            {% for certification in certifications %}
+            <div class="certification-group">
+              <textarea class="form-control mb-2" name="certification_{{ forloop.counter0 }}" placeholder="Nhập tên chứng chỉ">{{ certification.certificate }}</textarea>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="addCertification()" data-bs-toggle="tooltip chung chi" title="thêm chứng chỉ">+</button>
+        </div>
+
+        <hr class="my-4">
+        <h4>Kỹ năng</h4>
+        <div id="skillContainer">
+          {% for skill in skills %}
+          <div class="skill-group">
+            <input type="text" class="form-control mb-2" name="skill_{{ forloop.counter0 }}" value="{{ skill.skill.skill }}" placeholder="Nhập kỹ năng">
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addSkill()" data-bs-toggle="tooltip ky nang" title="thêm kỹ năng">+</button>
+        
+        <input type="hidden" name="education_count" id="educationCount" value="{{ educations|length }}">
+        <input type="hidden" name="experience_count" id="experienceCount" value="{{ experiences|length }}">
+        <input type="hidden" name="skill_count" id="skillCount" value="{{ skills|length }}">
+        <input type="hidden" name="social_link_count" id="socialLinkCount" value="{{ social_links|length }}">
+        <input type="hidden" name="language_count" id="languageCount" value="{{ languages|length }}">
+        <input type="hidden" name="certification_count" id="certificationCount" value="{{ certifications|length }}">
+        <input type="hidden" name="project_count" id="projectCount" value="{{ projects|length }}">
+      </div>
+      <button type="submit" class="btn btn-secondary" style="float: right;">Hoàn thành và lưu CV</button>
+      <br><br><br><br>
+    </form>
+  </div>
+</body>
+
+
+
+
+
+
+<script>
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const avatarInput = document.getElementById("avatarInput");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const cropContainer = document.querySelector(".crop-container");
+    let cropper;
+
+    avatarInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                avatarPreview.src = event.target.result;
+                cropContainer.style.display = "block";
+
+                if (cropper) {
+                    cropper.destroy(); // Reset cropper nếu đã khởi tạo trước đó
+                }
+
+                cropper = new Cropper(avatarPreview, {
+                    aspectRatio: 1, // Hình vuông
+                    viewMode: 1,
+                    movable: true,
+                    cropBoxResizable: true,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById("cropButton").addEventListener("click", function () {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({
+                width: 170, // Kích thước ảnh
+                height: 170,
+            });
+
+            canvas.toBlob(function (blob) {
+                const formData = new FormData();
+                formData.append("avatar", blob);
+
+                fetch("/upload-avatar/", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    alert("Avatar uploaded successfully!");
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+            });
+        }
+    });
+});
+
+
+
+  // Khởi tạo tooltip
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip lien ket"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip du an"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip kinh nghiem"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip ngon ngu"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip chung chi"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip ky nang"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  document.getElementById('studentSelect').addEventListener('change', function() {
+      const studentPk = this.value;
+      if (studentPk) {
+          fetch(`/get-student-info/${studentPk}/`)
+              .then(response => {
+                  if (!response.ok) throw new Error('Network response was not ok');
+                  return response.json();
+              })
+              .then(data => {
+                  if (data.error) {
+                      alert(data.error);
+                  } else {
+                      document.getElementById('studentName').value = data.name || '';
+                      document.getElementById('studentCode').value = data.student_code || '';
+                      document.getElementById('studentEmail').value = data.email || '';
+                      document.getElementById('studentPhone').value = data.phone || '';
+                      document.getElementById('studyYear').value = data.study_year || '';
+                  }
+              })
+      } else {
+          // clear nếu trường đó trống
+          document.getElementById('studentName').value = '';
+          document.getElementById('studentCode').value = '';
+          document.getElementById('studentEmail').value = '';
+          document.getElementById('studentPhone').value = '';
+          document.getElementById('studyYear').value = '';
+      }
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+    $('.university-select').select2({
+        placeholder: "Chọn hoặc nhập tên trường",
+        tags: true, // Cho phép nhập liệu tùy ý
+        allowClear: false, // Cho phép xóa lựa chọn
+        theme: "bootstrap-5",
+        createTag: function(params) {
+            let term = $.trim(params.term);
+            if (term === '') {
+                return null; // Không tạo tag nếu chuỗi rỗng
+            }
+            return {
+                id: term,
+                text: term,
+                newOption: true // Đánh dấu đây là tag mới
+            };
+        },
+        templateResult: function(data) {
+            if (data.newOption) {
+                return $(`<span>Thêm mới: <strong>${data.text}</strong></span>`);
+            }
+            return data.text;
+        }
+    });
+});
+
+  function addExperience() {
+    const container = document.getElementById('experienceContainer');
+    const group = document.createElement('div');
+    group.classList.add('experience-group');
+    group.innerHTML = `
+ 
+        <div class="row mb-10 g-3">
+          <div class="col-md-3">
+            <input type="text" class="form-control" name="experience_${experienceCount}_company_name" placeholder="Tên Công ty">
+          </div>
+          <div class="col-md-3">
+            <input type="text" class="form-control" name="experience_${experienceCount}_role" placeholder="Vai trò">
+          </div>
+          <div class="col-md-3">
+              <div class="input-group">
+                <span class="input-group-text">Start</span>
+                <input type="date" class="form-control" name="experience_${experienceCount}_start_date">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="input-group">
+                <span class="input-group-text">End</span>
+                <input type="date" class="form-control" name="experience_${experienceCount}_end_date">
+              </div>
+            </div>
+        </div>
+        <div class="row g-3 mt-0">
+          <div class="col-md-12">
+            <textarea class="form-control mb-2" name="experience_${experienceCount}_context" placeholder="Mô tả kinh nghiệm của bạn" style="height: 40px;"></textarea>
+          </div>
+        </div>
+        <br>
+          <button type="button" class="btn btn-danger mb-2" onclick="removeExperience(this)">Xóa Kinh nghiệm này</button>
+              <br><br>
+        </div>
+    `;
+    container.appendChild(group);
+    experienceCount++;
+}
+
+function removeExperience(button) {
+    const group = button.closest('.experience-group'); // Tìm phần tử cha gần nhất có class "experience-group"
+    if (group) {
+        group.remove(); // Xóa toàn bộ nhóm kinh nghiệm
+    }
+  }
+
+function addSkill() {
+    const countInput = document.getElementById("skillCount");
+    const count = parseInt(countInput.value, 10);
+    const container = document.getElementById("skillContainer");
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="skill-group">
+        <div class="row">
+              <div class="col-md-6">
+                <input type="text" class="form-control mb-2" name="skill_${count}" placeholder="Nhập kỹ năng">
+              </div>
+              <div class="col-md-3">
+                <button type="button" class="btn btn-danger" onclick="removeSkill(this)">Xóa kĩ năng</button>
+              </div>
+            </div>
+        
+      </div>
+    `);
+
+    countInput.value = count + 1;
+}
+
+function removeSkill(button) {
+    const skillGroup = button.closest('.skill-group');
+    if (skillGroup) {
+        skillGroup.remove();
+    }
+}
+
+
+function addSocialLink() {
+    const countInput = document.getElementById("socialLinkCount");
+    const count = parseInt(countInput.value, 10);
+    const container = document.getElementById("socialLinkContainer");
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="social-link-group">
+        <div class="row align-items-center mb-2">
+          <div class="col-md-6">
+            <input type="url" class="form-control" name="social_link_${count}" placeholder="Nhập liên kết (facebook, website, ..)">
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control" name="social_link_${count}_display_name" placeholder="Tên hiển thị (nếu có)">
+          </div>
+          <div class="col-md-12 mt-2">
+            <button type="button" class="btn btn-danger" onclick="removeSocialLink(this)">Xóa liên kết</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    countInput.value = count + 1;
+}
+
+  function removeSocialLink(button) {
+    const socialLinkGroup = button.closest('.social-link-group');
+    if (socialLinkGroup) {
+        socialLinkGroup.remove();
+    }
+  }
+
+  function addLanguage() {
+    const countInput = document.getElementById("languageCount");
+    const count = parseInt(countInput.value, 10);
+    const container = document.getElementById("languageContainer");
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="language-group">
+        <div class="row g-3">
+          <div class="col-md-6">
+              <input type="text" class="form-control mb-2" name="language_${count}_name" placeholder="Nhập tên ngôn ngữ">
+          </div>
+          <div class="col-md-6">
+              <textarea class="form-control mb-2" name="language_${count}_description" placeholder="Mô tả trình độ ngôn ngữ của bạn" style="height: 40px;"></textarea>
+          </div>  
+        </div>
+        <button type="button" class="btn btn-danger" onclick="removeLanguage(this)">Xóa ngôn ngữ trên</button> <br><br>
+      </div>
+    `);
+
+    countInput.value = count + 1;
+  }
+
+  function removeLanguage(button) {
+    const languageGroup = button.closest('.language-group');
+    if (languageGroup) {
+        languageGroup.remove();
+    }
+  }
+
+  function addCertification() {
+    const countInput = document.getElementById("certificationCount");
+    const count = parseInt(countInput.value, 10);
+    const container = document.getElementById("certificationContainer");
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="certification-group">
+
+        <textarea class="form-control mb-2" name="certification_${count}" placeholder="Nhập tên chứng chỉ" style="height: 40px;"></textarea>
+        <button type="button" class="btn btn-danger" onclick="removeCertification(this)">Xóa chứng chỉ trên</button>
+        <br><br>
+      </div>
+    `);
+
+    countInput.value = count + 1;
+  }
+
+  function removeCertification(button) {
+    const certificationGroup = button.closest('.certification-group');
+    if (certificationGroup) {
+        // Xóa <br> liền kề trước hoặc sau (nếu có)
+        const prevBr = certificationGroup.previousSibling;
+        if (prevBr && prevBr.nodeName === "BR") {
+            prevBr.remove();
+        }
+        const nextBr = certificationGroup.nextSibling;
+        if (nextBr && nextBr.nodeName === "BR") {
+            nextBr.remove();
+        }
+        // Xóa nhóm chứng chỉ
+        certificationGroup.remove();
+    }
+  }
+
+  function addProject() {
+    const countInput = document.getElementById("projectCount");
+    const count = parseInt(countInput.value, 10);
+    const container = document.getElementById("projectContainer");
+
+    container.insertAdjacentHTML("beforeend", `
+  <div class="project-group">
+    <br>
+    <div class="row">
+      <div class="col-md-7">
+        <div class="form-group-inline">
+          <label for="project_${count}_name">Tên dự án:</label>
+          <input type="text" class="form-control" name="project_${count}_name">
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="form-group-inline">
+          <label for="project_${count}_link">Liên kết dự án:</label>
+          <input type="url" class="form-control" name="project_${count}_link">
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group-inline">
+        <label for="project_${count}_description">Mô tả dự án:</label>
+        <textarea class="form-control" name="project_${count}_description" placeholder="Mô tả nội dung dự án"></textarea>
+      </div>
+    </div>
+    <button type="button" class="btn btn-danger" onclick="removeProject(this)">Xóa dự án trên</button>
+    <br><br>
+  </div>
+`);
+
+    countInput.value = count + 1;
+  }
+
+
+  function removeProject(button) {
+    const projectGroup = button.closest('.project-group');
+    if (projectGroup) {
+        projectGroup.remove();
+    }
+  }
+
+
+</script>
+
+{% endblock %}

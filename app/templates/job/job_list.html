@@ -1,0 +1,140 @@
+{% extends "base_generic.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="text-center">DANH SÁCH CÔNG VIỆC</h1>
+
+    <!-- Button toggle between views -->
+    <div class="text-center my-3">
+        <button class="btn job-btn" id="all-jobs-btn">Tất cả công việc</button>
+        <button class="btn job-btn" id="recommended-jobs-btn">Đề xuất cho ngành học của bạn</button>
+    </div>
+    <br>
+
+    <!-- Filter Section -->
+    <form method="GET" id="filter-form" class="mb-3">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" name="job_name" class="form-control" placeholder="Nhập tên công việc" value="{{ request.GET.job_name }}">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="company" class="form-control" placeholder="Nhập tên công ty" value="{{ request.GET.company }}">
+            </div>
+            <div class="col-md-2">
+                <select name="industry" class="form-select">
+                    <option value="">Ngành việc</option>
+                    {% for industry in industries %}
+                        <option value="{{ industry.id }}" {% if industry.id == request.GET.industry|default:'' %}selected{% endif %}>{{ industry.industry_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="salary_min" class="form-control" placeholder="Nhập lương tối thiểu" value="{{ request.GET.salary_min }}">
+            </div>
+            <div class="col-md-1 d-flex align-items-center justify-content-center">
+                <button type="submit" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="col-md-1 d-flex align-items-center justify-content-center">
+                <button type="button" class="btn btn-light" id="reset-filter"  data-bs-toggle="tooltip" title="Reset bộ lọc">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;">
+                        <path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    
+
+    <!-- Job List Container -->
+    <div id="job-list-container">
+        {% include 'job/job_table.html' with jobs=jobs %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let allJobsBtn = document.getElementById('all-jobs-btn');
+        let recommendedJobsBtn = document.getElementById('recommended-jobs-btn');
+
+        // Kiểm tra trạng thái lưu trong localStorage
+        let selectedTab = localStorage.getItem("selectedJobTab") || "all";
+
+        if (selectedTab === "recommended") {
+            recommendedJobsBtn.classList.add('selected');
+            fetchJobs("{% url 'depart_recommended_jobs' %}");
+        } else {
+            allJobsBtn.classList.add('selected');
+            fetchJobs("{% url 'job_list' %}");
+        }
+
+        // Xử lý sự kiện click cho các nút
+        document.querySelectorAll('.job-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                // Loại bỏ class 'selected' khỏi tất cả nút
+                document.querySelectorAll('.job-btn').forEach(function(btn) {
+                    btn.classList.remove('selected');
+                });
+
+                // Thêm class 'selected' cho nút được chọn
+                this.classList.add('selected');
+
+                // Lưu trạng thái vào localStorage
+                if (this.id === "recommended-jobs-btn") {
+                    localStorage.setItem("selectedJobTab", "recommended");
+                    fetchJobs("{% url 'depart_recommended_jobs' %}");
+                } else {
+                    localStorage.setItem("selectedJobTab", "all");
+                    fetchJobs("{% url 'job_list' %}");
+                }
+            });
+        });
+    });
+
+
+
+
+    document.getElementById("all-jobs-btn").addEventListener("click", function () {
+        fetchJobs("{% url 'job_list' %}");
+    });
+
+    document.getElementById("recommended-jobs-btn").addEventListener("click", function () {
+        fetchJobs("{% url 'depart_recommended_jobs' %}");
+    });
+
+    function fetchJobs(url) {
+        let params = new URLSearchParams(window.location.search); // Lấy toàn bộ tham số hiện tại
+        url += '?' + params.toString(); // Gắn tham số vào URL
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.text();
+        })
+        .then((html) => {
+            document.getElementById("job-list-container").innerHTML = html;
+        })
+        .catch((error) => {
+            console.error("Error fetching jobs:", error);
+        });
+    }
+
+
+    
+    document.getElementById("reset-filter").addEventListener("click", function () {
+        let form = document.getElementById("filter-form");
+        form.reset(); // Reset lại các input về mặc định
+        window.location.href = window.location.pathname; // Load lại trang để xóa bộ lọc
+    });
+</script>
+{% endblock %}

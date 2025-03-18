@@ -1,0 +1,486 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+
+<style>
+
+    /* Khu vực danh sách phòng chat */
+.inbox_people {
+    background: #ffffff;
+    float: left;
+    overflow: hidden;
+    width: 30%;
+    border-right: 2px solid #1b1d4d;
+}
+
+.inbox_msg {
+    border-radius: 15px;
+    border: 2px solid #1b1d4d !important;  
+    clear: both;
+    overflow: hidden;
+    background-color: #f5f6fa;
+    border: 1px solid #1b1d4d;
+    width: 1200px;
+    height: 600px;
+}
+
+.top_spac {
+    margin: 20px 0 0;
+}
+
+.recent_heading {
+    float: left;
+    width: 40%;
+}
+
+.srch_bar {
+    display: inline-block;
+    text-align: right;
+    width: 60%;
+}
+
+.headind_srch {
+    padding: 10px 29px 10px 20px;
+    overflow: hidden;
+    border-bottom: 1px solid #1b1d4d;
+}
+
+.recent_heading h5 {
+    text-align: center;
+    color: #1b1d4d;
+    font-size: 25px;
+    margin: auto;   
+}
+
+.srch_bar input {
+    border: 1px solid #cdcdcd;
+    border-width: 0 0 1px 0;
+    width: 80%;
+    padding: 2px 0 4px 6px;
+    background: none;
+}
+
+.srch_bar .input-group-addon button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #707070;
+    font-size: 18px;
+}
+
+.srch_bar .input-group-addon {
+    margin: 0 0 0 -27px;
+}
+
+/* Khu vực danh sách chat */
+.chat_ib h5 {
+    font-size: 15px;
+    color: #1b1d4d;
+    margin: 0 0 8px 0;
+}
+
+.chat_ib h5 span {
+    font-size: 13px;
+    float: right;
+}
+
+.chat_ib p {
+    font-size: 14px;
+    color: #666666;
+    margin: auto;
+}
+
+.chat_img {
+    float: left;
+    width: 11%;
+}
+
+.chat_ib {
+    float: left;
+    padding: 0 0 0 15px;
+    width: 88%;
+}
+
+.chat_people {
+    overflow: hidden;
+    clear: both;
+}
+
+.chat_list {
+    border-bottom: 1px solid #1b1d4d;;
+    margin: 0;
+    padding: 18px 16px 10px;
+}
+.chat_list:hover {
+    background: #e0e1e8;
+    transition: 0.3s;
+}
+
+.inbox_chat {
+    height: 690px;
+    overflow-y: scroll;
+}
+
+.active_chat {
+    background: #e8eaf6;
+}
+
+/* Khu vực tin nhắn */
+.mesgs {
+    float: left;
+    padding: 30px 15px 0 25px;
+    width: 70%;
+}
+
+.msg_history {
+    height: 435px;
+    overflow-y: auto;
+}
+
+/* Tin nhắn nhận */
+.received_msg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: auto;
+}
+
+.received_msg p {
+    background: #1b1d4d;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 15px;
+    margin: 0;
+    padding: 8px 12px;
+    display: inline-block;
+    max-width: 500px;
+    /* word-wrap: break-word; */
+}
+
+.received_msg .time_date {
+    color: #6b6b6b;
+    font-size: 12px;
+    margin-top: 3px;
+    text-align: left;
+}
+
+/* Tin nhắn gửi */
+.sent_msg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: auto;
+}
+
+.sent_msg p {
+    background: #4d508f;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    margin: 0;
+    padding: 8px 12px;
+    display: inline-block;
+    max-width: 100%;
+    margin-right: 15px;
+    /* word-wrap: break-word; */
+}
+
+.sent_msg .time_date {
+    color: #6b6b6b;
+    font-size: 12px;
+    margin-top: 3px;
+    text-align: right;
+    margin-right: 15px;
+}
+
+/* Đảm bảo tin nhắn căn chỉnh đúng */
+.outgoing_msg {
+    overflow: hidden;
+    margin: 26px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.incoming_msg {
+    overflow: hidden;
+    margin: 26px 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Khu vực nhập tin nhắn */
+.type_msg {
+    border-top: 1px solid #1b1d4d;
+    position: relative;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Chứa ô nhập tin nhắn và nút gửi */
+.input_msg_write {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+/* Ô nhập tin nhắn nhiều dòng */
+.input_msg_write textarea {
+    border: 1px solid #e0e3f5;
+    font-size: 15px;
+    min-height: 20px;
+    max-height: 50px; /* Giới hạn chiều cao tối đa */
+    width: 100%;
+    padding: 10px 45px 10px 15px; /* Chừa khoảng trống cho nút gửi */
+    outline: none;
+    border-radius: 25px;
+    background: #ffffff;
+    resize: none; /* Không cho phép kéo dãn */
+    overflow-y: auto; /* Tự động cuộn khi quá dài */
+}
+
+/* Nút gửi nằm trong ô nhập tin nhắn, bên phải */
+.msg_send_btn {
+    background: #1b1d4d;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    font-size: 17px;
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.msg_send_btn:hover {
+    background: #4d508f;
+}
+.messaging {
+    padding: 0 0 25px 0;
+}
+
+/* Tên đối tác trò chuyện */
+.chat_partner_name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1b1d4d;
+    padding: 10px 0;
+    text-align: center;
+    border-bottom: 2px solid #1b1d4d;
+    margin-bottom: 10px;
+}
+.room-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #1b1d4d;
+    padding: 5px 0;
+    text-align: left;
+    /* border-bottom: 1px solid #1b1d4d; */
+    margin-bottom: 4px;
+}
+
+    </style>
+
+
+<!-- <div class="container"> -->
+    <div class="messaging">
+        <div class="inbox_msg">
+            <div class="inbox_people">
+                <div class="headind_srch">
+                    <div class="recent_heading">
+                        <h5>Danh sách</h5>
+                    </div>
+                    <div class="srch_bar">
+                        <div class="stylish-input-group">
+                            <input type="text" class="search-bar" placeholder="Search">
+                            <span class="input-group-addon">
+                                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="inbox_chat">
+                    {% if not request.user.is_superuser %}
+                        <!-- Phòng chat với ChatBot -->
+                        <div class="chat_list">
+                            <div class="chat_people">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="25" height="25" viewBox="0 0 256 256" xml:space="preserve">
+
+                                    <defs>
+                                    </defs>
+                                    <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                                        <path d="M 89.707 27.193 l -26.9 -26.9 c -0.391 -0.391 -1.023 -0.391 -1.414 0 l -7.504 7.504 c -0.391 0.391 -0.391 1.023 0 1.414 l 2.682 2.682 L 31.91 29.975 c -3.021 -2.909 -7.841 -2.879 -10.818 0.098 l -2.747 2.748 c -0.391 0.391 -0.391 1.023 0 1.414 l 15.787 15.787 L 18.81 65.344 c -4.515 4.516 -8.705 9.422 -12.454 14.582 l -6.165 8.486 c -0.289 0.398 -0.246 0.947 0.102 1.295 C 0.487 89.9 0.743 90 1 90 c 0.205 0 0.411 -0.063 0.587 -0.191 l 8.486 -6.164 c 5.16 -3.749 10.066 -7.938 14.582 -12.454 l 15.322 -15.322 l 15.788 15.787 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 2.747 -2.747 c 2.978 -2.978 3.007 -7.798 0.098 -10.818 l 18.082 -24.661 l 2.682 2.682 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 7.504 -7.504 C 90.098 28.217 90.098 27.584 89.707 27.193 z M 38.564 54.454 L 23.242 69.776 c -4.442 4.441 -9.268 8.563 -14.344 12.25 l -3.38 2.455 l 2.456 -3.38 c 3.687 -5.076 7.809 -9.902 12.25 -14.344 l 15.322 -15.322 l 1.51 1.51 L 38.564 54.454 z M 58.513 67.494 l -2.04 2.04 L 38.469 51.531 l -2.217 -2.217 c 0 0 0 0 0 0 L 20.465 33.528 l 2.04 -2.041 c 2.234 -2.232 5.867 -2.231 8.099 0 l 0.504 0.504 l 26.9 26.9 l 0.504 0.504 C 60.745 61.628 60.745 65.262 58.513 67.494 z M 58.599 56.653 L 33.347 31.401 l 24.655 -18.077 l 18.674 18.674 L 58.599 56.653 z M 81.496 33.99 l -2.8 -2.8 L 58.81 11.303 c 0 0 -0.001 -0.001 -0.002 -0.001 L 56.01 8.504 l 6.09 -6.09 L 87.586 27.9 L 81.496 33.99 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                    </g>
+                                </svg>
+                                <div class="chat_ib">
+                                    <a href="{% url 'chat_with_bot' %}" style="text-decoration: none; color: black; display: block;">
+                                        <h5>ChatBot Assistant 🤖</h5>
+                                        <!-- <p>Hỗ trợ tự động</p> -->
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                
+                        <!-- Phòng chat với Admin -->
+                        <div class="chat_list">
+                            <div class="chat_people">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="25" height="25" viewBox="0 0 256 256" xml:space="preserve">
+
+                                    <defs>
+                                    </defs>
+                                    <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                                        <path d="M 89.707 27.193 l -26.9 -26.9 c -0.391 -0.391 -1.023 -0.391 -1.414 0 l -7.504 7.504 c -0.391 0.391 -0.391 1.023 0 1.414 l 2.682 2.682 L 31.91 29.975 c -3.021 -2.909 -7.841 -2.879 -10.818 0.098 l -2.747 2.748 c -0.391 0.391 -0.391 1.023 0 1.414 l 15.787 15.787 L 18.81 65.344 c -4.515 4.516 -8.705 9.422 -12.454 14.582 l -6.165 8.486 c -0.289 0.398 -0.246 0.947 0.102 1.295 C 0.487 89.9 0.743 90 1 90 c 0.205 0 0.411 -0.063 0.587 -0.191 l 8.486 -6.164 c 5.16 -3.749 10.066 -7.938 14.582 -12.454 l 15.322 -15.322 l 15.788 15.787 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 2.747 -2.747 c 2.978 -2.978 3.007 -7.798 0.098 -10.818 l 18.082 -24.661 l 2.682 2.682 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 7.504 -7.504 C 90.098 28.217 90.098 27.584 89.707 27.193 z M 38.564 54.454 L 23.242 69.776 c -4.442 4.441 -9.268 8.563 -14.344 12.25 l -3.38 2.455 l 2.456 -3.38 c 3.687 -5.076 7.809 -9.902 12.25 -14.344 l 15.322 -15.322 l 1.51 1.51 L 38.564 54.454 z M 58.513 67.494 l -2.04 2.04 L 38.469 51.531 l -2.217 -2.217 c 0 0 0 0 0 0 L 20.465 33.528 l 2.04 -2.041 c 2.234 -2.232 5.867 -2.231 8.099 0 l 0.504 0.504 l 26.9 26.9 l 0.504 0.504 C 60.745 61.628 60.745 65.262 58.513 67.494 z M 58.599 56.653 L 33.347 31.401 l 24.655 -18.077 l 18.674 18.674 L 58.599 56.653 z M 81.496 33.99 l -2.8 -2.8 L 58.81 11.303 c 0 0 -0.001 -0.001 -0.002 -0.001 L 56.01 8.504 l 6.09 -6.09 L 87.586 27.9 L 81.496 33.99 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                    </g>
+                                </svg>
+                                <div class="chat_ib">
+                                    <a href="{% url 'chat_with_admin' %}" style="text-decoration: none; color: black; display: block;">
+                                        <h5>Phòng hỗ trợ sinh viên</h5>
+                                        <!-- <p>Liên hệ admin</p> -->
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="chat_list">
+                            <div class="chat_people">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="25" height="25" viewBox="0 0 256 256" xml:space="preserve">
+
+                                    <defs>
+                                    </defs>
+                                    <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                                        <path d="M 89.707 27.193 l -26.9 -26.9 c -0.391 -0.391 -1.023 -0.391 -1.414 0 l -7.504 7.504 c -0.391 0.391 -0.391 1.023 0 1.414 l 2.682 2.682 L 31.91 29.975 c -3.021 -2.909 -7.841 -2.879 -10.818 0.098 l -2.747 2.748 c -0.391 0.391 -0.391 1.023 0 1.414 l 15.787 15.787 L 18.81 65.344 c -4.515 4.516 -8.705 9.422 -12.454 14.582 l -6.165 8.486 c -0.289 0.398 -0.246 0.947 0.102 1.295 C 0.487 89.9 0.743 90 1 90 c 0.205 0 0.411 -0.063 0.587 -0.191 l 8.486 -6.164 c 5.16 -3.749 10.066 -7.938 14.582 -12.454 l 15.322 -15.322 l 15.788 15.787 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 2.747 -2.747 c 2.978 -2.978 3.007 -7.798 0.098 -10.818 l 18.082 -24.661 l 2.682 2.682 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 l 7.504 -7.504 C 90.098 28.217 90.098 27.584 89.707 27.193 z M 38.564 54.454 L 23.242 69.776 c -4.442 4.441 -9.268 8.563 -14.344 12.25 l -3.38 2.455 l 2.456 -3.38 c 3.687 -5.076 7.809 -9.902 12.25 -14.344 l 15.322 -15.322 l 1.51 1.51 L 38.564 54.454 z M 58.513 67.494 l -2.04 2.04 L 38.469 51.531 l -2.217 -2.217 c 0 0 0 0 0 0 L 20.465 33.528 l 2.04 -2.041 c 2.234 -2.232 5.867 -2.231 8.099 0 l 0.504 0.504 l 26.9 26.9 l 0.504 0.504 C 60.745 61.628 60.745 65.262 58.513 67.494 z M 58.599 56.653 L 33.347 31.401 l 24.655 -18.077 l 18.674 18.674 L 58.599 56.653 z M 81.496 33.99 l -2.8 -2.8 L 58.81 11.303 c 0 0 -0.001 -0.001 -0.002 -0.001 L 56.01 8.504 l 6.09 -6.09 L 87.586 27.9 L 81.496 33.99 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                    </g>
+                                </svg>
+                                <div class="chat_ib">
+                                    <a href="{% url 'chat_with_bot' %}" style="text-decoration: none; color: black; display: block;">
+                                        <h5>ChatBot Assistant 🤖</h5>
+                                        <!-- <p>Hỗ trợ tự động</p> -->
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                
+                    <!-- Danh sách các phòng chat khác -->
+                    {% for room in rooms %}
+                    <div class="chat_list">
+                        <div class="chat_people">
+                            <div class="chat_ib">
+                                <a href="{% url 'chat_dashboard_with_room' room.id %}" style="text-decoration: none; color: black; display: block;">
+                                    <div class="room-name">{{ room.display_username }}</div>
+                                    <p>{{ room.last_message|default:"Chưa có tin nhắn nào." }}</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <br>
+                    <h5>Không có phòng chat nào.</h5>
+                    {% endfor %}
+                </div>
+                
+            </div>
+            <div class="mesgs">
+                {% if chat_partner_name %}
+                    <div class="chat_partner_name">{{ chat_partner_name }}</div>
+                {% endif %}
+                <div class="msg_history" id="chat-log">
+                    {% for message in messages %}
+                    <div class="{% if message.sender == request.user %}outgoing_msg{% else %}incoming_msg{% endif %}">
+                        <div class="{% if message.sender == request.user %}sent_msg{% else %}received_msg{% endif %}">
+                            <p>{{ message.message|linebreaksbr|safe }}</p>
+                            <span class="time_date">{{ message.created_at|date:"H:i" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if room_id %}
+                <div class="type_msg">
+                    <div class="input_msg_write">
+                        <textarea id="chat-message-input" type="text" class="write_msg" placeholder="Type a message"></textarea>
+                        <button id="chat-message-send" class="msg_send_btn" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="send_icon">
+                                <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                <div>
+                    <p style="color :#1b1d4d; font-size: 17px; text-align: center;">Chọn room chat ở cột trái để vào cuộc trò chuyện</p>
+            </div>
+            
+        </div>
+    </div>
+<!-- </div> -->
+
+<script>
+    const roomId = "{{ room_id }}";
+    const userId = "{{ request.user.id }}";
+
+    if (roomId) {
+        const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomId}/`);
+
+        chatSocket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            const chatLog = document.querySelector("#chat-log");
+            
+            const newMessage = document.createElement("div");
+            newMessage.classList.add(data.sender_id == userId ? "outgoing_msg" : "incoming_msg");
+            
+            newMessage.innerHTML = `
+                <div class="${data.sender_id == userId ? 'sent_msg' : 'received_msg'}">
+                    <p>${data.message.replace(/\n/g, "<br>")}</p>
+                    <span class="time_date">vừa xong</span>
+                </div>`;
+            
+            chatLog.appendChild(newMessage);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error("Chat socket closed unexpectedly");
+        };
+
+        function sendMessage() {
+            const messageInput = document.querySelector("#chat-message-input");
+            const message = messageInput.value.trim();
+            if (message && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({ "message": message, "sender_id": userId }));
+                messageInput.value = "";
+            }
+        }
+
+        document.querySelector("#chat-message-send").onclick = sendMessage;
+        document.querySelector("#chat-message-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                if (event.shiftKey) {
+                    // Cho phép xuống dòng nếu nhấn Shift + Enter
+                    event.preventDefault();
+                    this.value += "\n";
+                } else {
+                    // Gửi tin nhắn nếu chỉ nhấn Enter
+                    event.preventDefault();
+                    sendMessage();
+                }
+            }
+        });
+
+        window.addEventListener("load", () => {
+            const chatLog = document.querySelector("#chat-log");
+            if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        window.scrollTo(0, document.body.scrollHeight);
+    });
+</script>
+{% endblock %}

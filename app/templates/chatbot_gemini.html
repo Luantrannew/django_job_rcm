@@ -1,0 +1,102 @@
+<div id="chat-container">
+    <div id="chat-header">
+        <span>Gemini Assistant</span>
+        <button class="close-chat-gemini" id="close-chat">×</button>
+    </div>
+    <div id="chat-body"></div>
+    <div id="chat-footer">
+        <input type="text" id="chat-input" placeholder="Nhập tin nhắn...">
+        <button id="send-chat" class="msg_send_btn_gemini">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="send_icon">
+                <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
+            </svg>
+        </button>
+    </div>
+</div>
+<button id="open-chat">💬</button>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const chatContainer = document.getElementById("chat-container");
+        const openChat = document.getElementById("open-chat");
+        const closeChat = document.getElementById("close-chat");
+        const chatBody = document.getElementById("chat-body");
+        const chatInput = document.getElementById("chat-input");
+        const sendChat = document.getElementById("send-chat");
+    
+        // Hàm lưu lịch sử tin nhắn vào localStorage
+        function saveChatHistory() {
+            localStorage.setItem("chatHistory", chatBody.innerHTML);
+        }
+    
+        // Hàm tải lại lịch sử chat khi mở trang
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem("chatHistory");
+            if (savedHistory) {
+                chatBody.innerHTML = savedHistory;
+            }
+        }
+    
+        // Tải lại tin nhắn khi mở trang
+        loadChatHistory();
+    
+        openChat.addEventListener("click", function () {
+            chatContainer.style.display = "block";
+            openChat.style.display = "none";
+        });
+    
+        closeChat.addEventListener("click", function () {
+            chatContainer.style.display = "none";
+            openChat.style.display = "block";
+        });
+    
+        // Hàm gửi tin nhắn
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+    
+            // Hiển thị tin nhắn người dùng
+            chatBody.innerHTML += `<div class="user-message">${message}</div>`;
+            saveChatHistory();
+            chatInput.value = "";
+    
+            fetch("/chatbotgemini/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: JSON.stringify({ message }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    chatBody.innerHTML += `<div class="bot-message">${data.response}</div>`;
+                    saveChatHistory(); // Lưu lại tin nhắn bot trả lời
+                }
+            });
+        }
+    
+        // Gửi tin nhắn khi click nút gửi
+        sendChat.addEventListener("click", sendMessage);
+    
+        // Gửi tin nhắn khi nhấn phím Enter trong input
+        chatInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    
+        // Xóa lịch sử chat khi đăng xuất
+        function clearChatOnLogout() {
+            localStorage.removeItem("chatHistory");
+        }
+    
+        // Gắn sự kiện xóa lịch sử chat khi người dùng bấm nút đăng xuất
+        const logoutBtn = document.querySelector("a[href='{% url 'logout' %}']");
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", clearChatOnLogout);
+        }
+    });
+</script>
+    

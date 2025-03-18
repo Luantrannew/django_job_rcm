@@ -1,0 +1,63 @@
+<style>
+    .job-name-link {
+        text-decoration: none;
+        color: #000000;
+    }
+
+    .job-name-link:hover {
+        text-decoration: underline;
+        color: #5a8ff2;
+    }
+    th {
+        /* text-align: center; */
+        font-size: 20px;
+    }
+</style>
+<br><br>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Tên công việc</th>
+            <th>Công ty</th>
+            <th>Ngành</th>
+            <th>Liên hệ nhân sự</th>
+            <th>Lương</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+            <tr>
+                <td>
+                    <a href="{{ job.link_job }}" target="_blank" class="job-name-link">
+                        {{ job.job_name }}
+                    </a>
+                <td>{{ job.company|default:"N/A" }}</td>
+                <td>{{ job.industry|default:"Uncategorized" }}</td>
+                <td>{{ job.hr|default:"N/A" }}</td>
+                <td>{{ job.salary|floatformat:2 }}</td>
+
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">Không có công việc nào khớp với mô tả.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Phân trang -->
+<div class="pagination my-3" style="float: right;">
+    {% if jobs.has_previous %}
+        <a href="?page={{ jobs.previous_page_number }}{% if request.GET.job_name %}&job_name={{ request.GET.job_name }}{% endif %}{% if request.GET.company %}&company={{ request.GET.company }}{% endif %}{% if request.GET.industry %}&industry={{ request.GET.industry }}{% endif %}{% if request.GET.salary_min %}&salary_min={{ request.GET.salary_min }}{% endif %}" class="btn btn-light">&laquo Quay về</a>
+    {% endif %}
+
+    <span class="mx-2">Trang {{ jobs.number }} trong {{ jobs.paginator.num_pages }} trang </span>
+
+    {% if jobs.has_next %}
+        <a href="?page={{ jobs.next_page_number }}{% if request.GET.job_name %}&job_name={{ request.GET.job_name }}{% endif %}{% if request.GET.company %}&company={{ request.GET.company }}{% endif %}{% if request.GET.industry %}&industry={{ request.GET.industry }}{% endif %}{% if request.GET.salary_min %}&salary_min={{ request.GET.salary_min }}{% endif %}" class="btn btn-light">Tiếp &raquo;</a>
+    {% endif %}
+</div>
+
+
+

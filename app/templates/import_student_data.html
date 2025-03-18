@@ -1,0 +1,75 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Import Student Data</title>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container mt-5">
+        <h1>Import CSV</h1>
+        <form method="POST" enctype="multipart/form-data" id="csvForm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="csv_file" class="form-label">Upload CSV File</label>
+                <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Import</button>
+        </form>
+
+        <div id="statusMessage" class="mt-3">
+            <!-- Hiển thị trạng thái chung -->
+        </div>
+        <div id="logOutput" class="mt-3">
+            <h5>Logs:</h5>
+            <ul id="logList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('csvForm');
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const logList = document.getElementById('logList');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            // Reset giao diện
+            statusMessageDiv.innerHTML = '<div class="alert alert-info">Đang xử lý dữ liệu...</div>';
+            logList.innerHTML = '';
+
+            try {
+                // Gửi yêu cầu AJAX
+                const response = await fetch("{% url 'import_student' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': "{{ csrf_token }}"
+                    }
+                });
+
+                const data = await response.json();
+
+                // Hiển thị kết quả từng dòng
+                data.results.forEach(result => {
+                    const logItem = document.createElement('li');
+                    if (result.status === 'error') {
+                        logItem.textContent = `Lỗi khi xử lý sinh viên ${result.full_name} (${result.student_code}, lớp ${result.student_class}): ${result.error}`;
+                        logItem.style.color = 'red';
+                    } else {
+                        logItem.textContent = `Đã xử lý sinh viên: ${result.full_name} (${result.student_code}, lớp ${result.student_class}) - ${result.created ? "Tạo mới" : "Đã tồn tại"}`;
+                        logItem.style.color = 'green';
+                    }
+                    logList.appendChild(logItem);
+                });
+
+                statusMessageDiv.innerHTML = '<div class="alert alert-success">Nhập dữ liệu hoàn tất.</div>';
+            } catch (err) {
+                statusMessageDiv.innerHTML = `<div class="alert alert-danger">Có lỗi xảy ra: ${err.message}</div>`;
+            }
+        });
+    </script>
+</body>
+{% endblock %}
