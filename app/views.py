@@ -196,16 +196,32 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 # Đường dẫn tuyệt đối đến font
 
-FONT_PATH_REGULAR = r"C:\working\job_rcm\job_rcm_code\django\due_job_rcm\app\static\fonts\Nunito-Regular.ttf"
-FONT_PATH_BOLD = r"C:\working\job_rcm\job_rcm_code\django\due_job_rcm\app\static\fonts\Nunito-Bold.ttf"
+# FONT_PATH_REGULAR = r"C:\working\job_rcm\job_rcm_code\django\due_job_rcm\app\static\fonts\Nunito-Regular.ttf"
+# FONT_PATH_BOLD = r"C:\working\job_rcm\job_rcm_code\django\due_job_rcm\app\static\fonts\Nunito-Bold.ttf"
 
 
-# Kiểm tra nếu file font tồn tại trước khi đăng ký (tránh lỗi)
-if os.path.exists(FONT_PATH_REGULAR) and os.path.exists(FONT_PATH_BOLD):
+# # Kiểm tra nếu file font tồn tại trước khi đăng ký (tránh lỗi)
+# if os.path.exists(FONT_PATH_REGULAR) and os.path.exists(FONT_PATH_BOLD):
+#     pdfmetrics.registerFont(TTFont('Nunito', FONT_PATH_REGULAR))
+#     pdfmetrics.registerFont(TTFont('Nunito-Bold', FONT_PATH_BOLD))
+# else:
+#     raise FileNotFoundError("Font Nunito không tìm thấy. Kiểm tra lại đường dẫn trong static/fonts/")
+
+
+
+from django.contrib.staticfiles import finders
+
+# Use finders to get the actual file system path
+FONT_PATH_REGULAR = finders.find('fonts/Nunito-Regular.ttf')
+FONT_PATH_BOLD = finders.find('fonts/Nunito-Bold.ttf')
+
+# Kiểm tra nếu file font tồn tại trước khi đăng ký
+if FONT_PATH_REGULAR and FONT_PATH_BOLD:
     pdfmetrics.registerFont(TTFont('Nunito', FONT_PATH_REGULAR))
     pdfmetrics.registerFont(TTFont('Nunito-Bold', FONT_PATH_BOLD))
 else:
     raise FileNotFoundError("Font Nunito không tìm thấy. Kiểm tra lại đường dẫn trong static/fonts/")
+
 
 def generate_cv_pdf(request, cv_id):
     cv = get_object_or_404(models.CV, pk=cv_id)
