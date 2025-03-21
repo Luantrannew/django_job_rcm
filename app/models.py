@@ -158,15 +158,15 @@ class LanguageinCV(models.Model):
 #############################################
 
 class Company(models.Model):
-    company_name = models.TextField(max_length=255,null=True, blank=True)
-    company_link = models.URLField(null=True, blank=True)
+    company_name = models.TextField(null=True, blank=True)
+    company_link = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.company_name
 
 # (chưa biết được làm như nào, làm trước nếu không có thì xử lí null, các job sẽ là chưa phân loại )
 class Industry(models.Model):
-    industry_name = models.TextField(max_length=255,null=True, blank=True)
+    industry_name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -174,17 +174,17 @@ class Industry(models.Model):
 
 
 class HR(models.Model):
-    name = models.TextField(max_length=255,null=True, blank=True)
-    link = models.URLField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+    link = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class Job(models.Model):
-    job_name = models.TextField(max_length=255,null=True, blank=True)
+    job_name = models.TextField(null=True, blank=True)
     salary = models.DecimalField(max_digits=10, decimal_places=2,null=True, blank=True)
-    link_job = models.URLField()
+    link_job = models.TextField()
     jd = models.TextField() 
 
     hr = models.ForeignKey("HR", on_delete=models.CASCADE)

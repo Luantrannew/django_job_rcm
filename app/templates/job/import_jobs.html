@@ -30,16 +30,16 @@
         const form = document.getElementById('csvForm');
         const statusMessageDiv = document.getElementById('statusMessage');
         const logList = document.getElementById('logList');
-
+    
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
+    
             const formData = new FormData(form);
-
+    
             // Reset giao diện
             statusMessageDiv.innerHTML = '<div class="alert alert-info">Đang xử lý dữ liệu...</div>';
             logList.innerHTML = '';
-
+    
             try {
                 // Gửi yêu cầu AJAX
                 const response = await fetch("{% url 'import_jobs' %}", {
@@ -49,22 +49,27 @@
                         'X-CSRFToken': "{{ csrf_token }}"
                     }
                 });
-
+    
                 const data = await response.json();
-
+    
                 // Hiển thị kết quả từng dòng
                 data.results.forEach(result => {
                     const logItem = document.createElement('li');
                     if (result.status === 'error') {
-                        logItem.textContent = `Lỗi khi xử lý job "${result.job_name}" tại công ty "${result.company_name}": ${result.error}`;
-                        logItem.style.color = 'red';
+                        logItem.innerHTML = `
+                            <strong style="color:red">Lỗi khi xử lý job:</strong> "${result.job_name}" tại công ty "${result.company_name}"<br>
+                            <strong>Chi tiết lỗi:</strong> ${result.error}<br>
+                            <details>
+                                <summary><strong>Traceback (chi tiết lỗi)</strong></summary>
+                                <pre style="background:#f8d7da; color:#721c24; padding:10px;">${result.traceback}</pre>
+                            </details>
+                        `;
                     } else {
-                        logItem.textContent = `Đã xử lý job: "${result.job_name}" tại công ty "${result.company_name}" - ${result.created ? "Tạo mới" : "Đã tồn tại"}`;
-                        logItem.style.color = 'green';
+                        logItem.innerHTML = `<strong style="color:green">Đã xử lý job:</strong> "${result.job_name}" tại công ty "${result.company_name}" - ${result.created ? "Tạo mới" : "Đã tồn tại"}`;
                     }
                     logList.appendChild(logItem);
                 });
-
+    
                 statusMessageDiv.innerHTML = '<div class="alert alert-success">Nhập dữ liệu hoàn tất.</div>';
             } catch (err) {
                 statusMessageDiv.innerHTML = `<div class="alert alert-danger">Có lỗi xảy ra: ${err.message}</div>`;

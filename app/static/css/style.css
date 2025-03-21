@@ -411,8 +411,21 @@ html { height: 100%;}
 }
 
 #wrapper.toggled {
-    padding-left: 220px;
+    padding-left: 100px;
 }
+
+#wrapper.toggled .hamburger {
+    left: 160px; /* Slightly less than sidebar width to keep it inside */
+    color: white !important;
+}
+
+
+#wrapper.toggled .hamburger .hamb-top,
+#wrapper.toggled .hamburger .hamb-middle,
+#wrapper.toggled .hamburger .hamb-bottom {
+    background-color: white;
+}
+
 
 #sidebar-wrapper {
     z-index: 1000;

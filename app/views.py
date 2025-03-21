@@ -16,6 +16,7 @@ from . import models, nlp
 from django.db.models import Q, Max
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+import traceback
 
 
 def index (request): 
@@ -916,97 +917,89 @@ def import_jobs(request):
         if 'csv_file' in request.FILES:
             csv_file = request.FILES['csv_file']
 
-            # Kiểm tra định dạng file
             if not csv_file.name.endswith('.csv'):
                 return JsonResponse({'status': 'error', 'message': "File không đúng định dạng CSV."})
 
             try:
-                # Đọc file CSV
                 decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
                 reader = csv.DictReader(decoded_file)
 
-                results = []  # Danh sách lưu kết quả của từng dòng
-
+                results = []
                 for row in reader:
                     try:
-                        # Lấy thông tin từ từng dòng và xử lý
-                        job_link = str(row['job_link']).strip()
-                        hr_name = str(row['hr_id']).strip()
-                        company_name = str(row['company_name']).strip()
-                        company_href = str(row['company_href']).strip()
-                        job_name = str(row['job_name']).strip()
-                        salary = row['salary'].strip()
-                        region = str(row['region']).strip()
-                        job_status = str(row['job_status']).strip()
-                        post_date = str(row['post_date']).strip()
-                        scrape_date = str(row['scrape_date']).strip()
-                        jd = str(row['jd']).strip()
-                        description = str(row['description']).strip()
+                        job_link = str(row.get('job_link', '')).strip()
+                        job_name = str(row.get('job_name', '')).strip()
+                        company_name = str(row.get('company_name', '')).strip()
+                        salary = row.get('salary', '').strip()
+                        # region = str(row.get('region', '')).strip()
+                        # job_status = str(row.get('job_status', '')).strip()
+                        # post_date = str(row.get('post_date', '')).strip()
+                        # scrape_date = str(row.get('scrape_date', '')).strip() 
+                        jd = str(row.get('jd', '')).strip()
+                        jd = str(row.get('description', '')).strip()
+                        hr_id = str(row.get('hr_id', '')).strip()
+                        company_href = str(row.get('company_href', '')).strip()
+                        industry_name = str(row.get('industry_name', 'Chưa phân loại')).strip()
 
-                        # Tạo hoặc lấy thông tin HR
+                        if not job_link or not job_name or not company_name:
+                            continue  # Bỏ qua dòng thiếu dữ liệu quan trọng
+
                         hr, _ = models.HR.objects.get_or_create(
-                            name=hr_name,
-                            defaults={
-                                'link': job_link
-                            }
+                            name=hr_id if hr_id else "N/A",
+                            defaults={'link': job_link}
                         )
 
-                        # Tạo hoặc lấy thông tin công ty
                         company, _ = models.Company.objects.get_or_create(
                             company_name=company_name,
-                            defaults={
-                                'company_link': company_href
-                            }
+                            defaults={'company_link': company_href}
                         )
 
-                        # Tạo hoặc lấy thông tin Industry (chưa phân loại nếu không có)
-                        industry_name = row.get('industry_name', 'Chưa phân loại').strip()
                         industry, _ = models.Industry.objects.get_or_create(
                             industry_name=industry_name,
                             defaults={'description': 'Chưa phân loại'}
                         )
 
-                        # Tạo Job
                         job, created = models.Job.objects.get_or_create(
                             link_job=job_link,
                             defaults={
                                 'job_name': job_name,
                                 'salary': salary if salary else None,
+                                # 'region': region,
+                                # 'job_status': job_status,
+                                # 'post_date': post_date,
+                                # 'scrape_date': scrape_date,
                                 'jd': jd,
+                                # 'description': description,
                                 'company': company,
                                 'hr': hr,
                                 'industry': industry,
                             }
                         )
+                        # print(job)
 
-                        # Ghi kết quả thành công
+
                         results.append({
                             'status': 'success',
                             'job_name': job_name,
                             'company_name': company_name,
                             'created': created,
                         })
-
                     except Exception as e:
-                        # Ghi kết quả lỗi
+                        error_trace = traceback.format_exc()
                         results.append({
                             'status': 'error',
                             'job_name': job_name,
                             'company_name': company_name,
-                            'error': str(e)
+                            'error': str(e),
+                            'traceback': error_trace
                         })
 
-                # Trả về kết quả của tất cả các dòng
-                return JsonResponse({
-                    'status': 'complete',
-                    'results': results
-                })
-
+                return JsonResponse({'status': 'complete', 'results': results})
             except Exception as e:
-                return JsonResponse({'status': 'error', 'message': f"Có lỗi xảy ra: {str(e)}"})
+                # return JsonResponse({'status': 'error', 'message': f"Có lỗi xảy ra: {str(e)}"})
+                return JsonResponse({'status': 'error', 'message': f"Có lỗi xảy ra: {str(e)}", 'traceback': traceback.format_exc()})
 
     return render(request, 'job/import_jobs.html')
-
 
 @login_required(login_url='sign_in')
 def job_list(request):
@@ -1070,7 +1063,7 @@ def recommended_jobs_by_department(request):
     # Lọc các công việc theo ngành
     # jobs = models.Job.objects.filter(industry__description__icontains=department.name)
     jobs = models.Job.objects.all().order_by('-id')[:25]
-
+    
     # Apply filters từ request.GET
     job_name = request.GET.get('job_name', '').strip()
     company_name = request.GET.get('company', '').strip()
